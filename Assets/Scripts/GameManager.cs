@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -11,8 +13,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _snakePartPrefab;
     [SerializeField] private Vector3 _startingLocation = new Vector3(5, 5, 0);
     
-    // TODO: many parts
-    private GameObject _snakePart;
+    private List<GameObject> _snakeParts = new();
     private GameObject _currentFruit;
     private int _score;
 
@@ -24,26 +25,26 @@ public class GameManager : MonoBehaviour
     {
         if (Instance && Instance != this)
         {
-            Destroy(gameObject);
+            Destroy(this);
             return;
         }
         
         Instance = this;
-
         StartGame();
     }
 
     private void StartGame()
     {
         BuildLevel();
-        CreateSnakePart();
+        CreateSnakePart(_startingLocation);
         SpawnFruit();
         _score = 0;
     }
 
-    private void CreateSnakePart()
+    private void CreateSnakePart(Vector3 position)
     {
-        _snakePart = Instantiate(_snakePartPrefab, _startingLocation, Quaternion.identity);
+        var newPart = Instantiate(_snakePartPrefab, position, Quaternion.identity);
+        _snakeParts.Add(newPart);
     }
 
     private void Start()
@@ -83,20 +84,84 @@ public class GameManager : MonoBehaviour
     {
         var x = UnityEngine.Random.Range(1, _levelWidth);
         var y = UnityEngine.Random.Range(1, _levelHeight);
-        return new Vector3(x, y, 0);
+        var suggestedPosition = new Vector3(x, y, 0);
+
+        if (IsOnSnake(suggestedPosition))
+        {
+            // dont hate me
+            return GetSpawnPosition();
+        }
+
+        return suggestedPosition;
     }
 
-    public void MoveSnake(Vector3 nextDirection)
+    public void TryMoveSnake(Vector3 nextHeadDirection)
     {
-        _snakePart.transform.position += nextDirection;
-        
-        if (_currentFruit != null &&
-            Vector3.Distance(_snakePart.transform.position, _currentFruit.transform.position) < 0.1f)
+        var headPosition = _snakeParts.Last().transform.position;
+        var newHeadPosition = headPosition + nextHeadDirection;
+
+        var isOnFruit = _currentFruit &&
+                        Vector3.Distance(newHeadPosition, _currentFruit.transform.position) < 0.1f;
+        if (isOnFruit)
         {
             Destroy(_currentFruit);
             RaiseScore();
             SpawnFruit();
+            ElongateSnake(newHeadPosition);
+            return;
         }
+        
+        var isOnWall = newHeadPosition.y >= _levelHeight || 
+                       newHeadPosition.y < 0 ||
+                       newHeadPosition.x >= _levelWidth ||
+                       newHeadPosition.x < 0;
+        if (isOnWall)
+        {
+            HandleGameOver();
+            return;
+        }
+        
+        var isOnSnake = IsOnSnake(newHeadPosition);
+        if (isOnSnake)
+        {
+            HandleGameOver();
+            return;
+        }
+        
+        MoveSnake(newHeadPosition);
+    }
+
+    private bool IsOnSnake(Vector3 position)
+    {
+        return _snakeParts.Any(part => 
+            Vector3.Distance(part.transform.position, position) < 0.1f);
+    }
+
+    private void HandleGameOver()
+    {
+        CurrentGameState = GameState.GameOver;
+        // TODO: Spawn Menu...
+    }
+
+    private void MoveSnake(Vector3 newHeadPosition)
+    {
+        CreateSnakePart(newHeadPosition);
+        RemoveSnakeTail();
+    }
+
+    private void RemoveSnakeTail()
+    {
+        var tail = _snakeParts.FirstOrDefault();
+        if (tail != null)
+        {
+            _snakeParts.Remove(tail);
+            Destroy(tail);    
+        }
+    }
+
+    private void ElongateSnake(Vector3 newHeadPosition)
+    {
+        CreateSnakePart(newHeadPosition);
     }
 
     private void RaiseScore()

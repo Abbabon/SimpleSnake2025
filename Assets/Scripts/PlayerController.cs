@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
             _movementCounter = 0f;
             if (_nextDirection.HasValue)
             {
-                GameManager.Instance.MoveSnake(_nextDirection.Value);
+                GameManager.Instance.TryMoveSnake(_nextDirection.Value);
             }
         }
     }
@@ -51,19 +51,19 @@ public class PlayerController : MonoBehaviour
             OnPlayerInput?.Invoke();
         }
 
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKeyDown(KeyCode.D) && _nextDirection != Vector3.left)
         {
             _nextDirection = Vector3.right;
         }
-        else if (Input.GetKeyDown(KeyCode.A))
+        else if (Input.GetKeyDown(KeyCode.A) && _nextDirection != Vector3.right)
         {
             _nextDirection = Vector3.left;
         }
-        else if (Input.GetKeyDown(KeyCode.W))
+        else if (Input.GetKeyDown(KeyCode.W) && _nextDirection != Vector3.down)
         {
             _nextDirection = Vector3.up;
         }
-        else if (Input.GetKeyDown(KeyCode.S))
+        else if (Input.GetKeyDown(KeyCode.S) && _nextDirection != Vector3.up)
         {
             _nextDirection = Vector3.down;
         }
