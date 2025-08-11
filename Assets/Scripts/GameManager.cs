@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,10 +7,35 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private int _levelWidth = 10;
     [SerializeField] private int _levelHeight = 10;
+
+    public static GameManager Instance { get; private set; }
     
+    public GameState CurrentGameState { get; private set; } = GameState.NotStarted;
+
     private void Awake()
     {
+        if (Instance && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        Instance = this;
+
         BuildLevel();
+    }
+
+    private void Start()
+    {
+        PlayerController.Instance.OnPlayerInput += OnPlayerInput;
+    }
+
+    private void OnPlayerInput()
+    {
+        if (CurrentGameState == GameState.NotStarted)
+        {
+            CurrentGameState = GameState.InProgress;   
+        }
     }
 
     private void BuildLevel()
