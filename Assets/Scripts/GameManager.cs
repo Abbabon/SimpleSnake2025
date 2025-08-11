@@ -8,6 +8,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int _levelWidth = 10;
     [SerializeField] private int _levelHeight = 10;
 
+    [SerializeField] private GameObject _snakePartPrefab;
+    [SerializeField] private Vector3 _startingLocation = new Vector3(5, 5, 0);
+    
+    // TODO: many parts
+    private GameObject _snakePart;
+    private GameObject _currentFruit;
+    private int _score;
+
     public static GameManager Instance { get; private set; }
     
     public GameState CurrentGameState { get; private set; } = GameState.NotStarted;
@@ -22,7 +30,20 @@ public class GameManager : MonoBehaviour
         
         Instance = this;
 
+        StartGame();
+    }
+
+    private void StartGame()
+    {
         BuildLevel();
+        CreateSnakePart();
+        SpawnFruit();
+        _score = 0;
+    }
+
+    private void CreateSnakePart()
+    {
+        _snakePart = Instantiate(_snakePartPrefab, _startingLocation, Quaternion.identity);
     }
 
     private void Start()
@@ -53,17 +74,9 @@ public class GameManager : MonoBehaviour
         rightWall.transform.localScale = new Vector3(1, _levelHeight, 1);
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SpawnFruit();
-        }
-    }
-
     private void SpawnFruit()
     {
-        var newFruit = Instantiate(_fruitPrefab, GetSpawnPosition(), Quaternion.identity);
+        _currentFruit = Instantiate(_fruitPrefab, GetSpawnPosition(), Quaternion.identity);
     }
 
     private Vector3 GetSpawnPosition()
@@ -71,5 +84,24 @@ public class GameManager : MonoBehaviour
         var x = UnityEngine.Random.Range(1, _levelWidth);
         var y = UnityEngine.Random.Range(1, _levelHeight);
         return new Vector3(x, y, 0);
+    }
+
+    public void MoveSnake(Vector3 nextDirection)
+    {
+        _snakePart.transform.position += nextDirection;
+        
+        if (_currentFruit != null &&
+            Vector3.Distance(_snakePart.transform.position, _currentFruit.transform.position) < 0.1f)
+        {
+            Destroy(_currentFruit);
+            RaiseScore();
+            SpawnFruit();
+        }
+    }
+
+    private void RaiseScore()
+    {
+        _score += 1;
+        Debug.Log($"Score: {_score}");
     }
 }

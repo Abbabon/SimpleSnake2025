@@ -3,9 +3,6 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private GameObject _snakePart;
-    
     [Header("Movement Settings")]
     [SerializeField] private float _movementTimeout = 0.5f;
     
@@ -42,7 +39,7 @@ public class PlayerController : MonoBehaviour
             _movementCounter = 0f;
             if (_nextDirection.HasValue)
             {
-                _snakePart.transform.position += _nextDirection.Value;
+                GameManager.Instance.MoveSnake(_nextDirection.Value);
             }
         }
     }
