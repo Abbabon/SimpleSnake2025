@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -12,10 +13,22 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameObject _snakePartPrefab;
     [SerializeField] private Vector3 _startingLocation = new Vector3(5, 5, 0);
+
+    [SerializeField] private TextMeshProUGUI _scoreText;
     
     private List<GameObject> _snakeParts = new();
     private GameObject _currentFruit;
+
     private int _score;
+    private int Score
+    { 
+        get => _score;
+        set
+        {
+            _score = value;
+            _scoreText.text = _score.ToString();
+        }
+    }
 
     public static GameManager Instance { get; private set; }
     
@@ -38,7 +51,7 @@ public class GameManager : MonoBehaviour
         BuildLevel();
         CreateSnakePart(_startingLocation);
         SpawnFruit();
-        _score = 0;
+        Score = 0;
     }
 
     private void CreateSnakePart(Vector3 position)
@@ -166,7 +179,7 @@ public class GameManager : MonoBehaviour
 
     private void RaiseScore()
     {
-        _score += 1;
-        Debug.Log($"Score: {_score}");
+        Score += 1;
+        Debug.Log($"Score: {Score}");
     }
 }
