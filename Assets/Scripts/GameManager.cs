@@ -60,12 +60,7 @@ public class GameManager : MonoBehaviour
         _snakeParts.Add(newPart);
     }
 
-    private void Start()
-    {
-        PlayerController.Instance.OnPlayerInput += OnPlayerInput;
-    }
-
-    private void OnPlayerInput()
+    public void OnStartGameClicked()
     {
         if (CurrentGameState == GameState.NotStarted)
         {
